@@ -204,7 +204,8 @@ export default function Map() {
 
   const onGridMouseMove = (e: KonvaEventObject<MouseEvent>) => {
     if (rectangleStarted) {
-      const { top, left } = e.evt?.target?.getBoundingClientRect();
+      const node = e.evt?.target as HTMLElement;
+      const { top, left } = node.getBoundingClientRect();
       const [gridX, gridY] = mousePosOnGrid(e.evt.clientX - (left * 2), e.evt.clientY - (top * 2))
       if (rectangleEnd?.x !== gridX || rectangleEnd?.y !== gridY) {
         setRectangleEnd({ x: gridX, y: gridY })
@@ -213,7 +214,8 @@ export default function Map() {
   }
 
   const onGridClick = (e: KonvaEventObject<MouseEvent>) => {
-    const { top, left } = e.evt?.target?.getBoundingClientRect();
+    const node = e.evt?.target as HTMLElement;
+    const { top, left } = node.getBoundingClientRect();
     const [gridX, gridY] = mousePosOnGrid(e.evt.clientX - (left * 2), e.evt.clientY - (top * 2))
     if (gridX < labelZeroX) {
       setLabelZeroX(gridX)
