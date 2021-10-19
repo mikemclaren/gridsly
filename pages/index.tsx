@@ -1,9 +1,6 @@
-import { Box, Container, Flex, Spacer, Text } from '@chakra-ui/layout'
+import { Box } from '@chakra-ui/layout'
 import Head from 'next/head'
-import Image from 'next/image'
 import dynamic from 'next/dynamic'
-
-import { Button } from '@chakra-ui/button'
 
 export interface MapProps {
 
