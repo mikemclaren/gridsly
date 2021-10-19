@@ -2,7 +2,7 @@ import { Box } from "@chakra-ui/layout";
 import { KonvaEventObject } from "konva/lib/Node";
 import { Stage as StageType } from "konva/lib/Stage";
 import { useCallback, useLayoutEffect, useRef, useState, useEffect } from "react";
-import { KonvaNodeComponent, Stage } from "react-konva";
+import { Stage } from "react-konva";
 import { CELL_SCALAR } from "../../_vars";
 import MapControls from "../MapControls";
 import MapGrid from "../MapGrid";

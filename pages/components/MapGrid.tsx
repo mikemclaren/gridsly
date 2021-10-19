@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Layer } from "react-konva";
 import { LayerType } from "./Map/Map";
 import { PointComponent } from "./Point";
