@@ -27,7 +27,7 @@ export const MapControls = ({
       <Box paddingBottom={10}>
         <Box paddingBottom={2}>
           <Menu>
-            <MenuButton as={Button} isFullWidth rightIcon={<ChevronDownIcon />} leftIcon={<PlusSquareIcon />}>Space</MenuButton>
+            <MenuButton as={Button} rightIcon={<ChevronDownIcon />} leftIcon={<PlusSquareIcon />} width="100%">Space</MenuButton>
             <MenuList>
               <MenuItem onClick={() => selectTool('single-space')}>Single Block</MenuItem>
               <MenuItem onClick={() => selectTool('rectangle-space')}>Rectangle Tool</MenuItem>
@@ -36,7 +36,7 @@ export const MapControls = ({
         </Box>
         <Box>
           <Menu>
-            <MenuButton as={Button} isFullWidth rightIcon={<ChevronDownIcon />} leftIcon={<SmallCloseIcon />}> Barriers</MenuButton>
+            <MenuButton as={Button} rightIcon={<ChevronDownIcon />} leftIcon={<SmallCloseIcon />} width="100%"> Barriers</MenuButton>
             <MenuList>
               <MenuItem>Wall</MenuItem>
               <MenuItem>Door</MenuItem>
@@ -48,13 +48,13 @@ export const MapControls = ({
         <Box>
           <FormLabel>Zoom: ({zoom * 100}%)</FormLabel>
         </Box>
-        <ButtonGroup size="sm" variant="outline" isAttached isFullWidth>
-          <IconButton aria-label="Zoom In" colorScheme="blue" onClick={changeZoom(0.25)} icon={<AddIcon />} isFullWidth />
-          <IconButton aria-label="Zoom Out" colorScheme="blue" onClick={changeZoom(-0.25)} icon={<MinusIcon />} isFullWidth />
+        <ButtonGroup size="sm" variant="outline" isAttached width="100%">
+          <IconButton aria-label="Zoom In" colorScheme="blue" onClick={changeZoom(0.25)} icon={<AddIcon />} width="100%" />
+          <IconButton aria-label="Zoom Out" colorScheme="blue" onClick={changeZoom(-0.25)} icon={<MinusIcon />} width="100%" />
         </ButtonGroup>
       </Box>
       <Box>
-        <Button onClick={exportPNG} isFullWidth leftIcon={<DownloadIcon />}>Export (PNG)</Button>
+        <Button onClick={exportPNG} width="100%" leftIcon={<DownloadIcon />}>Export (PNG)</Button>
       </Box>
     </Box>
   )
