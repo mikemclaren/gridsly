@@ -6,10 +6,10 @@ export interface MapProps {
 
 }
 
-// const Map = dynamic<MapProps>(() => import('./components/Map/Map'), {
-//   ssr: false,
-//   loading: () => <p>...</p>
-// })
+const Map = dynamic<MapProps>(() => import('../components/Map/Map'), {
+  ssr: false,
+  loading: () => <p>...</p>
+})
 
 export default function Home() {
   return (
@@ -20,7 +20,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {/* <Map /> */}
+      <Map />
     </Box>
   )
 }
