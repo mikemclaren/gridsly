@@ -1,5 +1,7 @@
-const withTM = require('next-transpile-modules')(['konva']);
+const withTM = require('next-transpile-modules')([
+  'konva',
+  'colorette',
+  'nanoid'
+])
 
-module.exports = withTM({
-  webpack5: false
-});
+module.exports = withTM()
