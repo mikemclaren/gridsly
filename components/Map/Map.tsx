@@ -417,7 +417,9 @@ export default function Map() {
         x={stageX}
         y={stageY}
         transform={transformStr}
-        onClick={onGridClick}
+        onMouseDown={onGridClick}
+        // onClick={onGridClick}
+        onDragMove={onGridMouseMove}
         onMouseMove={onGridMouseMove}
         ref={stageRef}
       >
