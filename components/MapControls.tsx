@@ -16,6 +16,7 @@ import Image from 'next/image'
 
 // MAP CONTROL COMPONENT SHOULD BE NEXT FOR SURE
 export const MapControls = ({
+  selectedTool = 'single-space',
   selectTool = (tool: string) => {},
   exportPNG = () => {},
   changeZoom = (zoomDiff: number) => () => {},
@@ -30,9 +31,6 @@ export const MapControls = ({
       bgColor="white"
       width="12em"
     >
-      <Box>
-        <Image src="/Gridsly.png" width={60} height={60} />
-      </Box>
       <Box paddingBottom={10}>
         <Box paddingBottom={2}>
           <Menu>
@@ -41,6 +39,12 @@ export const MapControls = ({
               rightIcon={<ChevronDownIcon />}
               leftIcon={<PlusSquareIcon />}
               width="100%"
+              colorScheme="purple"
+              variant={
+                ['single-space', 'rectangle-space'].indexOf(selectedTool) > -1
+                  ? 'solid'
+                  : 'outline'
+              }
             >
               Space
             </MenuButton>
@@ -61,6 +65,12 @@ export const MapControls = ({
               rightIcon={<ChevronDownIcon />}
               leftIcon={<SmallCloseIcon />}
               width="100%"
+              colorScheme="purple"
+              variant={
+                ['single-wall', 'single-door'].indexOf(selectedTool) > -1
+                  ? 'solid'
+                  : 'outline'
+              }
             >
               {' '}
               Barriers
@@ -82,6 +92,12 @@ export const MapControls = ({
               rightIcon={<ChevronDownIcon />}
               leftIcon={<AtSignIcon />}
               width="100%"
+              colorScheme="purple"
+              variant={
+                ['single-player', 'single-npc'].indexOf(selectedTool) > -1
+                  ? 'solid'
+                  : 'outline'
+              }
             >
               {' '}
               Creatures
@@ -102,6 +118,7 @@ export const MapControls = ({
           width="100%"
           leftIcon={<DeleteIcon />}
           onClick={() => selectTool('eraser')}
+          isActive={selectedTool === 'eraser'}
         >
           Erase
         </Button>

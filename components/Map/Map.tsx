@@ -434,6 +434,7 @@ export default function Map() {
       </Stage>
 
       <MapControls
+        selectedTool={selectedTool}
         selectTool={selectTool}
         exportPNG={exportPNG}
         changeZoom={changeZoom}
