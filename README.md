@@ -1,5 +1,7 @@
 # Gridsly
 
+Deployed version: https://gridsly.app
+
 Gridsly is the helper that all DMs need. He can help visualize the trickier aspects of combat, and just general small-scale situational awareness.
 
 *If you need a grid, use Gridsly.*
@@ -22,5 +24,5 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
 
-## Data Structures
-
+## Deployment
+Pushes to the `main` branch triggers production deployments via Vercel.
