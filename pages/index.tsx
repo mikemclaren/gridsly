@@ -1,10 +1,9 @@
 import { Box } from '@chakra-ui/layout'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
+import { RecoilRoot } from 'recoil'
 
-export interface MapProps {
-
-}
+export interface MapProps {}
 
 const Map = dynamic<MapProps>(() => import('../components/Map/Map'), {
   ssr: false,
@@ -20,7 +19,9 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Map />
+      <RecoilRoot>
+        <Map />
+      </RecoilRoot>
     </Box>
   )
 }

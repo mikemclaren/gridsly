@@ -12,8 +12,11 @@ import { Stage } from 'react-konva'
 import { CELL_SCALAR } from '../../_vars'
 import MapControls from '../MapControls'
 import MapGrid from '../MapGrid'
-import { Coordinates, Point } from '../Point'
+import { Coordinates, PartialEntity, Point } from '../Point'
 import FileSaver from 'file-saver'
+import { useRecoilBridgeAcrossReactRoots_UNSTABLE, useRecoilState, useRecoilValue } from 'recoil'
+import { playerEditOpenState, selectedPlayerState, selectedToolState } from '../../state/controls'
+import { PlayerEditBar } from '../PlayerEditBar'
 
 export enum Layers {
   SPACES = 0,
@@ -109,7 +112,7 @@ export default function Map() {
   const [stageY, setStageY] = useState(0)
   const [height, setHeight] = useState(window.innerHeight + PADDING * 2)
   const [width, setWidth] = useState(window.innerWidth + PADDING * 2)
-  const [selectedTool, setSelectedTool] = useState('')
+  const [selectedTool, setSelectedTool] = useRecoilState(selectedToolState)
   const [bufferX, setBufferX] = useState(PADDING)
   const [bufferY, setBufferY] = useState(PADDING)
   const [labelZeroX, setLabelZeroX] = useState(0)
@@ -120,6 +123,8 @@ export default function Map() {
     null
   )
   const [rectangleEnd, setRectangleEnd] = useState<Coordinates | null>(null)
+  const playerEditOpen = useRecoilValue(playerEditOpenState)
+  const selectedPlayer = useRecoilValue(selectedPlayerState)
   const stageRef = useRef<StageType>(null)
 
   const boxRef = useRef<HTMLDivElement>(null)
@@ -207,7 +212,13 @@ export default function Map() {
             },
             width: 1,
             height: 1,
-            type
+            type,
+            entity: type === 'player' ? {
+              name: 'PLAYER',
+              color: '#000000',
+              symbol: '@',
+              type: 'player'
+            } : undefined
           }
         ]
         return [...l]
@@ -403,6 +414,29 @@ export default function Map() {
     )
   }
 
+  const updateSelectedPlayer = useCallback((entity: PartialEntity) => {
+    setLayers(l => {
+      const points = [...l[Layers.PLAYERS].points].map((point) => {
+        if (
+          point.coordinates.x === selectedPlayer.coordinates.x &&
+          point.coordinates.y === selectedPlayer.coordinates.y
+        ) {
+          if (point.entity) {
+            point.entity = { ...point.entity, ...entity }
+          }
+        }
+
+        return point
+      })
+
+      l[Layers.PLAYERS].points = [...points]
+
+      return [...l]
+    })
+  }, [selectedPlayer])
+
+  const RecoilBridge = useRecoilBridgeAcrossReactRoots_UNSTABLE()
+
   return (
     <Box
       ref={boxRef}
@@ -411,31 +445,33 @@ export default function Map() {
       height={window.innerHeight}
       bgColor="blackAlpha.700"
     >
-      <Stage
-        width={width}
-        height={height}
-        x={stageX}
-        y={stageY}
-        transform={transformStr}
-        onMouseDown={onGridClick}
-        // onClick={onGridClick}
-        onDragMove={onGridMouseMove}
-        onMouseMove={onGridMouseMove}
-        ref={stageRef}
-      >
-        <MapGrid
+      {playerEditOpen && <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} />}
+      <Box>
+        <Stage
           width={width}
           height={height}
-          zoom={zoomVal}
-          layers={layers}
-          labelZeroX={labelZeroX}
-          labelZeroY={labelZeroY}
-        />
-      </Stage>
+          x={stageX}
+          y={stageY}
+          transform={transformStr}
+          onMouseDown={onGridClick}
+          onDragMove={onGridMouseMove}
+          onMouseMove={onGridMouseMove}
+          ref={stageRef}
+        >
+          <RecoilBridge>
+            <MapGrid
+              width={width}
+              height={height}
+              zoom={zoomVal}
+              layers={layers}
+              labelZeroX={labelZeroX}
+              labelZeroY={labelZeroY}
+            />
+          </RecoilBridge>
+        </Stage>
+      </Box>
 
       <MapControls
-        selectedTool={selectedTool}
-        selectTool={selectTool}
         exportPNG={exportPNG}
         changeZoom={changeZoom}
         zoom={zoomVal}

@@ -12,16 +12,15 @@ import {
 } from '@chakra-ui/icons'
 import { Box } from '@chakra-ui/layout'
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/menu'
-import Image from 'next/image'
+import { useRecoilState } from 'recoil'
+import { selectedToolState } from '../state/controls'
 
-// MAP CONTROL COMPONENT SHOULD BE NEXT FOR SURE
 export const MapControls = ({
-  selectedTool = 'single-space',
-  selectTool = (tool: string) => {},
   exportPNG = () => {},
   changeZoom = (zoomDiff: number) => () => {},
   zoom = 0
 }) => {
+  const [selectedTool, setSelectedTool] = useRecoilState(selectedToolState)
   return (
     <Box
       position="fixed"
@@ -49,10 +48,10 @@ export const MapControls = ({
               Space
             </MenuButton>
             <MenuList>
-              <MenuItem onClick={() => selectTool('single-space')}>
+              <MenuItem onClick={() => setSelectedTool('single-space')}>
                 Single Block
               </MenuItem>
-              <MenuItem onClick={() => selectTool('rectangle-space')}>
+              <MenuItem onClick={() => setSelectedTool('rectangle-space')}>
                 Rectangle Tool
               </MenuItem>
             </MenuList>
@@ -76,10 +75,10 @@ export const MapControls = ({
               Barriers
             </MenuButton>
             <MenuList>
-              <MenuItem onClick={() => selectTool('single-wall')}>
+              <MenuItem onClick={() => setSelectedTool('single-wall')}>
                 Wall
               </MenuItem>
-              <MenuItem onClick={() => selectTool('single-door')}>
+              <MenuItem onClick={() => setSelectedTool('single-door')}>
                 Door
               </MenuItem>
             </MenuList>
@@ -103,10 +102,12 @@ export const MapControls = ({
               Creatures
             </MenuButton>
             <MenuList>
-              <MenuItem onClick={() => selectTool('single-player')}>
+              <MenuItem onClick={() => setSelectedTool('single-player')}>
                 Player
               </MenuItem>
-              <MenuItem onClick={() => selectTool('single-npc')}>NPC</MenuItem>
+              <MenuItem onClick={() => setSelectedTool('single-npc')}>
+                NPC
+              </MenuItem>
             </MenuList>
           </Menu>
         </Box>
@@ -117,7 +118,7 @@ export const MapControls = ({
           colorScheme="red"
           width="100%"
           leftIcon={<DeleteIcon />}
-          onClick={() => selectTool('eraser')}
+          onClick={() => setSelectedTool('eraser')}
           isActive={selectedTool === 'eraser'}
         >
           Erase

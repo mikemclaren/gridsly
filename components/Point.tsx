@@ -1,4 +1,8 @@
 import { Circle, Rect, Text } from 'react-konva'
+import {
+  useSetRecoilState
+} from 'recoil'
+import { playerEditOpenState, selectedPlayerState } from '../state/controls'
 import { CELL_SCALAR } from '../_vars'
 
 // allows for easy repeat
@@ -24,6 +28,13 @@ export type Entity = {
   type: string
 }
 
+export type PartialEntity = {
+  symbol?: string
+  color?: string
+  type?: string
+  name?: string
+}
+
 export type Point = {
   coordinates: Coordinates
   width: number
@@ -41,7 +52,7 @@ type ComponentProps = {
 }
 
 export const PointComponent = ({
-  point: { coordinates, width, height, type = 'space', position = 'left' },
+  point: { coordinates, width, height, type = 'space', position = 'left', entity },
   zoom,
   labelZeroX,
   labelZeroY
@@ -98,7 +109,8 @@ export const PointComponent = ({
             coordinates,
             height,
             width,
-            position
+            position,
+            entity
           }}
           zoom={zoom}
           labelZeroX={labelZeroX}
@@ -200,16 +212,24 @@ const DoorComponent = ({
 }
 
 const PlayerComponent = ({
-  point: { coordinates, width, height },
+  point,
   zoom,
   labelZeroX,
   labelZeroY
 }: ComponentProps) => {
-  const x = coordinates.x * CELL_SCALAR * zoom
-  const y = coordinates.y * CELL_SCALAR * zoom
+  const x = point.coordinates.x * CELL_SCALAR * zoom
+  const y = point.coordinates.y * CELL_SCALAR * zoom
 
-  const calcWidth = width * CELL_SCALAR * zoom
-  const calcHeight = height * CELL_SCALAR * zoom
+  const calcWidth = point.width * CELL_SCALAR * zoom
+  const calcHeight = point.height * CELL_SCALAR * zoom
+
+  const setSelectedPlayer = useSetRecoilState(selectedPlayerState)
+  const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
+
+  const onClick = () => {
+    setSelectedPlayer(point)
+    setPlayerEditOpen(true)
+  }
 
   return (
     <>
@@ -218,19 +238,21 @@ const PlayerComponent = ({
         y={y + calcHeight / 2}
         width={calcWidth}
         height={calcHeight}
-        fill="red"
-        id={`${coordinates.x}:${coordinates.y}`}
+        fill={point.entity?.color || "red"}
+        id={`${point.coordinates.x}:${point.coordinates.y}`}
+        onClick={onClick}
       />
       <Text
-        text="@"
+        text={point.entity?.symbol || "@"}
         fontSize={(CELL_SCALAR * zoom) / 2}
         fontStyle="bold"
         x={x}
         y={y + ((CELL_SCALAR * zoom) / 2 - (CELL_SCALAR * zoom) / 4)}
         fill="#FFFFFF"
-        width={width * CELL_SCALAR * zoom}
+        width={point.width * CELL_SCALAR * zoom}
         align="center"
-        id={`${coordinates.x}:${coordinates.y}`}
+        id={`${point.coordinates.x}:${point.coordinates.y}`}
+        onClick={onClick}
       />
     </>
   )
