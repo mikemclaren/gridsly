@@ -1,7 +1,7 @@
 import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/input'
 import { Box, Heading } from '@chakra-ui/layout'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { selectedPlayerState } from '../state/controls'
 import { PartialEntity } from './Point'
@@ -16,11 +16,30 @@ export const PlayerEditBar = ({
   const [symbol, setSymbol] = useState('')
   const [color, setColor] = useState('')
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
+  const colorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setSymbol(selectedPlayer.entity?.symbol || '')
     setColor(selectedPlayer.entity?.color || '')
   }, [selectedPlayer])
+
+  useLayoutEffect(() => {
+    function clickHandler(this: Document, ev: MouseEvent): any {
+      if (
+        colorPickerOpen &&
+        colorRef.current &&
+        !colorRef.current.contains(ev.target as Node)
+      ) {
+        setColorPickerOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', clickHandler)
+
+    return () => {
+      document.removeEventListener('mousedown', clickHandler)
+    }
+  }, [colorPickerOpen])
 
   const handleSymbolChange = (
     event: React.FormEvent<HTMLInputElement>
@@ -58,21 +77,18 @@ export const PlayerEditBar = ({
         Edit {selectedPlayer != null ? 'Player' : 'Creature'}
       </Heading>
 
-      <FormControl>
-        <FormLabel>Display Symbol</FormLabel>
+      <FormControl marginTop="1">
+        <FormLabel fontSize="small">Display Symbol</FormLabel>
         <Input
           type="text"
           maxLength={1}
           value={symbol}
           onChange={handleSymbolChange}
         />
-        <FormHelperText>
-          This symbol will be displayed on the map.
-        </FormHelperText>
       </FormControl>
 
-      <FormControl>
-        <FormLabel>Color</FormLabel>
+      <FormControl ref={colorRef} marginTop="3">
+        <FormLabel fontSize="small">Color</FormLabel>
         <InputGroup>
           <InputLeftElement
             pointerEvents="none"
@@ -82,7 +98,9 @@ export const PlayerEditBar = ({
         </InputGroup>
 
         {colorPickerOpen && (
-          <SketchPicker color={color} onChangeComplete={onColorChange} />
+          <Box marginTop="2" position="absolute">
+            <SketchPicker color={color} onChangeComplete={onColorChange} />
+          </Box>
         )}
       </FormControl>
     </Box>

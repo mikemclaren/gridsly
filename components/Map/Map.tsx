@@ -123,8 +123,8 @@ export default function Map() {
     null
   )
   const [rectangleEnd, setRectangleEnd] = useState<Coordinates | null>(null)
-  const playerEditOpen = useRecoilValue(playerEditOpenState)
-  const selectedPlayer = useRecoilValue(selectedPlayerState)
+  const [playerEditOpen, setPlayerEditOpen] = useRecoilState(playerEditOpenState)
+  const [selectedPlayer, setSelectedPlayer] = useRecoilState(selectedPlayerState)
   const stageRef = useRef<StageType>(null)
 
   const boxRef = useRef<HTMLDivElement>(null)
@@ -154,6 +154,12 @@ export default function Map() {
   }, [zoomVal])
 
   useEffect(() => {
+    setRectangleStarted(null)
+    setRectangleEnd(null)
+    setPlayerEditOpen(false)
+  }, [selectedTool])
+
+  useEffect(() => {
     setLayers((ls) => {
       if (rectangleStarted && rectangleEnd) {
         ls[Layers.MOUSE].points = [
@@ -181,12 +187,6 @@ export default function Map() {
       return [...ls]
     })
   }, [rectangleStarted, rectangleEnd])
-
-  const selectTool = (tool: string) => {
-    setSelectedTool(tool)
-    setRectangleStarted(null)
-    setRectangleEnd(null)
-  }
 
   const mousePosOnGrid = (x: number, y: number) => {
     const gridX = Math.floor((x - bufferX) / (CELL_SCALAR * zoomVal))
@@ -273,9 +273,40 @@ export default function Map() {
     })
   }
 
-  const addPlayer = (gridX: number, gridY: number) => {
-    addSingleCell(Layers.PLAYERS, gridX, gridY, 'player')
-  }
+  const addPlayer = useCallback((gridX: number, gridY: number) => {
+    if (!playerEditOpen) {
+      addSingleCell(Layers.PLAYERS, gridX, gridY, 'player')
+      return
+    }
+
+    // time to move the player
+    setLayers(l => {
+      for (let i = 0; i < l[Layers.PLAYERS].points.length; i++) {
+        if (
+          l[Layers.PLAYERS].points[i].coordinates.x ===
+            selectedPlayer.coordinates.x &&
+          l[Layers.PLAYERS].points[i].coordinates.y ===
+            selectedPlayer.coordinates.y
+        ) {
+          if (cellDoesNotExist(l[Layers.PLAYERS].points, { x: gridX, y: gridY })) {
+            l[Layers.PLAYERS].points[i].coordinates = {
+              x: gridX,
+              y: gridY
+            }
+            setSelectedPlayer({ ...selectedPlayer, coordinates: {
+              x: gridX,
+              y: gridY
+            }})
+          }
+
+          l[Layers.PLAYERS].points = [...l[Layers.PLAYERS].points]
+          return [ ...l ]
+        }
+      }
+
+      return l
+    })
+  }, [playerEditOpen, selectedPlayer])
 
   const addRectangleSpaces = () => {
     if (rectangleStarted && rectangleEnd) {
