@@ -2,7 +2,7 @@ import { atom } from "recoil";
 
 export const selectedToolState = atom({
   key: 'selectedToolState',
-  default: 'single-space'
+  default: ''
 })
 
 export const playerEditOpenState = atom({

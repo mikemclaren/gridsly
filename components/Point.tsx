@@ -1,11 +1,12 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { Circle, Rect, Text } from 'react-konva'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 import {
-  useRecoilValue,
-  useSetRecoilState
-} from 'recoil'
-import { playerEditOpenState, selectedPlayerState, selectedToolState } from '../state/controls'
-import { CELL_SCALAR } from '../_vars'
+  playerEditOpenState,
+  selectedPlayerState,
+  selectedToolState
+} from '../state/controls'
+import { calculateTextColorForBackground, CELL_SCALAR } from '../_vars'
 
 // allows for easy repeat
 const ABCS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆËĮØÛ'
@@ -54,7 +55,14 @@ type ComponentProps = {
 }
 
 export const PointComponent = ({
-  point: { coordinates, width, height, type = 'space', position = 'left', entity },
+  point: {
+    coordinates,
+    width,
+    height,
+    type = 'space',
+    position = 'left',
+    entity
+  },
   zoom,
   labelZeroX,
   labelZeroY
@@ -75,7 +83,7 @@ export const PointComponent = ({
           height={calcHeight}
           fill="rgba(0, 0, 0, 0.25)"
           strokeWidth={2 * zoom}
-          stroke="blue"
+          stroke="#4A5568"
           id={`${coordinates.x}:${coordinates.y}`}
         />
       )
@@ -86,7 +94,7 @@ export const PointComponent = ({
           y={y}
           width={calcWidth}
           height={calcHeight}
-          fill="rgba(0, 0, 0, 0.5)"
+          fill="#718096"
           id={`${coordinates.x}:${coordinates.y}`}
         />
       )
@@ -105,6 +113,7 @@ export const PointComponent = ({
         />
       )
     case 'player':
+    case 'npc':
       return (
         <PlayerComponent
           point={{
@@ -155,7 +164,7 @@ const SpaceComponent = ({
         y={y}
         width={calcWidth}
         height={calcHeight}
-        fill="white"
+        fill="#E2E8F0"
         strokeWidth={2 * zoom}
         stroke="#CBD5E0"
         id={`${coordinates.x}:${coordinates.y}`}
@@ -167,7 +176,7 @@ const SpaceComponent = ({
         fontSize={(CELL_SCALAR * zoom) / 4}
         x={x}
         y={y + ((CELL_SCALAR * zoom) / 2 - (CELL_SCALAR * zoom) / 8)}
-        fill="#718096"
+        fill="#2D3748"
         width={width * CELL_SCALAR * zoom}
         align="center"
         id={`${coordinates.x}:${coordinates.y}`}
@@ -207,7 +216,7 @@ const DoorComponent = ({
       y={calcY}
       width={calcWidth}
       height={calcHeight}
-      fill="rgba(0, 0, 0, 0.5)"
+      fill="#9C4221"
       id={`${coordinates.x}:${coordinates.y}`}
     />
   )
@@ -222,13 +231,26 @@ const PlayerComponent = ({
   const x = point.coordinates.x * CELL_SCALAR * zoom
   const y = point.coordinates.y * CELL_SCALAR * zoom
 
-  const calcWidth = point.width * CELL_SCALAR * zoom
-  const calcHeight = point.height * CELL_SCALAR * zoom
-
   const selectedTool = useRecoilValue(selectedToolState)
 
   const setSelectedPlayer = useSetRecoilState(selectedPlayerState)
   const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
+  const [accentColor, setAccentColor] = useState('')
+  const [calcWidth, setCalcWidth] = useState(point.width * CELL_SCALAR * zoom)
+  const [calcHeight, setCalcHeight] = useState(point.height * CELL_SCALAR * zoom)
+
+  useEffect(() => {
+    setAccentColor(
+      point.entity?.color
+        ? calculateTextColorForBackground(point.entity?.color)
+        : '#FFF'
+    )
+  }, [point.entity?.color])
+
+  useEffect(() => {
+    setCalcWidth(point.width * CELL_SCALAR * zoom)
+    setCalcHeight(point.height * CELL_SCALAR * zoom)
+  }, [point.width, point.height, zoom])
 
   const onClick = useCallback(() => {
     if (selectedTool === 'single-player') {
@@ -239,23 +261,39 @@ const PlayerComponent = ({
 
   return (
     <>
-      <Circle
-        x={x + calcWidth / 2}
-        y={y + calcHeight / 2}
-        width={calcWidth}
-        height={calcHeight}
-        fill={point.entity?.color || "red"}
-        id={`${point.coordinates.x}:${point.coordinates.y}`}
-        onClick={onClick}
-      />
+      {point.entity?.type === 'player' && (
+        <Circle
+          x={x + calcWidth / 2}
+          y={y + calcHeight / 2}
+          width={calcWidth}
+          height={calcHeight}
+          fill={point.entity?.color || 'red'}
+          id={`${point.coordinates.x}:${point.coordinates.y}`}
+          onClick={onClick}
+          strokeWidth={2 * zoom}
+          stroke={accentColor}
+        />
+      )}
+      {point.entity?.type === 'npc' && (
+        <Rect
+          x={x}
+          y={y}
+          width={calcWidth}
+          height={calcHeight}
+          fill={point.entity?.color || '#805ad5'}
+          id={`${point.coordinates.x}:${point.coordinates.y}`}
+          onClick={onClick}
+        />
+      )}
+
       <Text
-        text={point.entity?.symbol || "@"}
-        fontSize={(CELL_SCALAR * zoom) / 1.8}
+        text={point.entity?.symbol || '@'}
+        fontSize={(CELL_SCALAR * zoom * point.width) / 1.8}
         fontStyle="bold"
         fontFamily="monospace"
+        fill={accentColor}
         x={x}
-        y={y + ((CELL_SCALAR * zoom) / 2 - (CELL_SCALAR * zoom) / 4)}
-        fill="#FFFFFF"
+        y={y + ((CELL_SCALAR * zoom * point.width) / 2 - (CELL_SCALAR * zoom * point.height) / 4)}
         width={point.width * CELL_SCALAR * zoom}
         align="center"
         id={`${point.coordinates.x}:${point.coordinates.y}`}

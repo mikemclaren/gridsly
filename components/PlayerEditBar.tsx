@@ -1,6 +1,6 @@
 import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/input'
-import { Box, Heading } from '@chakra-ui/layout'
+import { Box, Heading, Stack } from '@chakra-ui/layout'
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil'
 import { playerEditOpenState, selectedPlayerState } from '../state/controls'
@@ -8,15 +8,18 @@ import { PartialEntity } from './Point'
 import { SketchPicker, ColorResult } from 'react-color'
 import { CloseIcon, StarIcon } from '@chakra-ui/icons'
 import { IconButton } from '@chakra-ui/button'
+import { Select } from '@chakra-ui/select'
+import { Radio, RadioGroup } from '@chakra-ui/radio'
 
 export const PlayerEditBar = ({
-  updateSelectedPlayer = (entity: PartialEntity) => {}
+  updateSelectedPlayer = (entity: PartialEntity | null, width?: number, height?: number) => {}
 }) => {
   const selectedPlayer = useRecoilValue(selectedPlayerState)
 
   const [symbol, setSymbol] = useState('')
   const [color, setColor] = useState('')
   const [name, setName] = useState('')
+  const [size, setSize] = useState(1)
   const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
   const colorRef = useRef<HTMLDivElement>(null)
@@ -25,6 +28,7 @@ export const PlayerEditBar = ({
     setSymbol(selectedPlayer.entity?.symbol || '')
     setColor(selectedPlayer.entity?.color || '')
     setName(selectedPlayer.entity?.name || '')
+    setSize(selectedPlayer.width || 1)
   }, [selectedPlayer])
 
   useLayoutEffect(() => {
@@ -54,6 +58,15 @@ export const PlayerEditBar = ({
       symbol: val
     })
   }
+
+  const onSizeChange = (
+    nextChange: string
+  ): void => {
+    const val = nextChange
+    setSize(parseInt(val))
+    updateSelectedPlayer(null, parseInt(val), parseInt(val))
+  }
+
 
   const handleNameChange = (event: React.FormEvent<HTMLInputElement>): void => {
     const val = event.currentTarget.value
@@ -89,7 +102,16 @@ export const PlayerEditBar = ({
         Edit {selectedPlayer != null ? 'Player' : 'Creature'}
       </Heading>
 
-      <IconButton colorScheme="purple" size="sm" aria-label="Close" icon={<CloseIcon />} position="absolute" right="2" top="2" onClick={() => setPlayerEditOpen(false)} />
+      <IconButton
+        colorScheme="purple"
+        size="sm"
+        aria-label="Close"
+        icon={<CloseIcon />}
+        position="absolute"
+        right="2"
+        top="2"
+        onClick={() => setPlayerEditOpen(false)}
+      />
 
       <FormControl marginTop="1">
         <FormLabel fontSize="small">Name</FormLabel>
@@ -118,7 +140,7 @@ export const PlayerEditBar = ({
             pointerEvents="none"
             children={<StarIcon color={color} />}
           />
-          <Input type="text" value={color} onClick={toggleColorPicker} />
+          <Input type="text" value={color} onClick={toggleColorPicker} readOnly />
         </InputGroup>
 
         {colorPickerOpen && (
@@ -127,6 +149,15 @@ export const PlayerEditBar = ({
           </Box>
         )}
       </FormControl>
+
+      <RadioGroup marginTop="1" value={size} onChange={onSizeChange}>
+        <FormLabel fontSize="small">Size</FormLabel>
+        <Stack>
+          <Radio value={1}>Small</Radio>
+          <Radio value={2}>Medium</Radio>
+          <Radio value={3}>Large</Radio>
+        </Stack>
+      </RadioGroup>
     </Box>
   )
 }

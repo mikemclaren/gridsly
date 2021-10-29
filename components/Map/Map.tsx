@@ -140,7 +140,7 @@ export default function Map() {
 
   const boxRef = useRef<HTMLDivElement>(null)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const reposition = () => {
       if (boxRef.current !== null) {
         const dx = boxRef.current.scrollLeft - PADDING
@@ -213,34 +213,47 @@ export default function Map() {
     gridY: number,
     type?: string | undefined
   ) => {
+    const cell = {
+      coordinates: {
+        x: gridX,
+        y: gridY
+      },
+      width: 1,
+      height: 1,
+      type,
+      entity:
+        type === 'player'
+          ? {
+              name: 'PLAYER',
+              color: '#000000',
+              symbol: '@',
+              type: 'player'
+            }
+          : undefined
+    }
+
+    if (type === 'npc') {
+      cell.entity = {
+        name: 'NPC',
+        color: '#805ad5',
+        symbol: '>',
+        type: 'npc'
+      }
+    }
+
     setLayers((l) => {
       if (cellDoesNotExist(l[layer].points, { x: gridX, y: gridY })) {
         l[layer].points = [
           ...l[layer].points,
-          {
-            coordinates: {
-              x: gridX,
-              y: gridY
-            },
-            width: 1,
-            height: 1,
-            type,
-            entity:
-              type === 'player'
-                ? {
-                    name: 'PLAYER',
-                    color: '#000000',
-                    symbol: '@',
-                    type: 'player'
-                  }
-                : undefined
-          }
+          cell
         ]
         return [...l]
       }
 
       return [...l]
     })
+
+    return cell
   }
 
   const addSingleSpace = (gridX: number, gridY: number) => {
@@ -289,9 +302,13 @@ export default function Map() {
   }
 
   const addPlayer = useCallback(
-    (gridX: number, gridY: number) => {
+    (gridX: number, gridY: number, type = 'player') => {
       if (!playerEditOpen) {
-        addSingleCell(Layers.PLAYERS, gridX, gridY, 'player')
+        const cell = addSingleCell(Layers.PLAYERS, gridX, gridY, type)
+        setSelectedPlayer({
+          ...cell,
+        })
+        setPlayerEditOpen(true)
         return
       }
 
@@ -454,7 +471,9 @@ export default function Map() {
   )
 
   const onGridClick = (e: KonvaEventObject<MouseEvent>) => {
-    setDragInProgress(true)
+    if (selectedTool !== '') {
+      setDragInProgress(true)
+    }
 
     const node = e.evt?.target as HTMLElement
     const { top, left } = node.getBoundingClientRect()
@@ -462,12 +481,14 @@ export default function Map() {
       e.evt.clientX - left * 2,
       e.evt.clientY - top * 2
     )
-    if (gridX < labelZeroX) {
-      setLabelZeroX(gridX)
-    }
+    if (selectedTool === 'single-space') {
+      if (gridX < labelZeroX) {
+        setLabelZeroX(gridX)
+      }
 
-    if (gridY < labelZeroY) {
-      setLabelZeroY(gridY)
+      if (gridY < labelZeroY) {
+        setLabelZeroY(gridY)
+      }
     }
 
     switch (selectedTool) {
@@ -481,14 +502,18 @@ export default function Map() {
         handleRectangleClick(gridX, gridY)
         break
       case 'single-player':
-        addPlayer(gridX, gridY)
+        addPlayer(gridX, gridY, 'player')
+        break
+      case 'single-npc':
+        addPlayer(gridX, gridY, 'npc')
         break
       case 'eraser':
         erase(gridX, gridY)
         break
       case 'single-space':
-      default:
         addSingleSpace(gridX, gridY)
+        break
+      default:
         break
     }
   }
@@ -507,15 +532,18 @@ export default function Map() {
   }
 
   const updateSelectedPlayer = useCallback(
-    (entity: PartialEntity) => {
+    (entity: PartialEntity | null, width?: number, height?: number) => {
       setLayers((l) => {
         const points = [...l[Layers.PLAYERS].points].map((point) => {
           if (
             point.coordinates.x === selectedPlayer.coordinates.x &&
             point.coordinates.y === selectedPlayer.coordinates.y
           ) {
-            if (point.entity) {
+            if (point.entity && entity) {
               point.entity = { ...point.entity, ...entity }
+            } else if (width && height) {
+              point.width = width
+              point.height = height
             }
           }
 
@@ -531,7 +559,9 @@ export default function Map() {
   )
 
   const onGridDragEnd = () => {
-    setDragInProgress(false)
+    if (selectedTool !== '') {
+      setDragInProgress(false)
+    }
   }
 
   const RecoilBridge = useRecoilBridgeAcrossReactRoots_UNSTABLE()
@@ -542,7 +572,7 @@ export default function Map() {
       overflow="auto"
       width={window.innerWidth}
       height={window.innerHeight}
-      bgColor="blackAlpha.700"
+      bgColor="gray.700"
     >
       {playerEditOpen && (
         <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} />

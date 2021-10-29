@@ -7,11 +7,14 @@ import {
   DeleteIcon,
   DownloadIcon,
   MinusIcon,
+  NotAllowedIcon,
   PlusSquareIcon,
   SmallCloseIcon
 } from '@chakra-ui/icons'
 import { Box } from '@chakra-ui/layout'
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/menu'
+import { Stack } from '@chakra-ui/react'
+import React from 'react'
 import { useRecoilState } from 'recoil'
 import { selectedToolState } from '../state/controls'
 
@@ -31,7 +34,20 @@ export const MapControls = ({
       width="12em"
     >
       <Box paddingBottom={10}>
-        <Box paddingBottom={2}>
+        <Stack>
+          <Button
+            colorScheme="purple"
+            width="100%"
+            leftIcon={<NotAllowedIcon />}
+            variant={
+              selectedTool === ''
+                ? 'solid'
+                : 'outline'
+            }
+            onClick={() => setSelectedTool('')}
+          >
+            No Edit Tool
+          </Button>
           <Menu>
             <MenuButton
               as={Button}
@@ -56,8 +72,6 @@ export const MapControls = ({
               </MenuItem>
             </MenuList>
           </Menu>
-        </Box>
-        <Box paddingBottom={2}>
           <Menu>
             <MenuButton
               as={Button}
@@ -83,8 +97,6 @@ export const MapControls = ({
               </MenuItem>
             </MenuList>
           </Menu>
-        </Box>
-        <Box>
           <Menu>
             <MenuButton
               as={Button}
@@ -110,7 +122,7 @@ export const MapControls = ({
               </MenuItem>
             </MenuList>
           </Menu>
-        </Box>
+        </Stack>
       </Box>
       <Box paddingBottom={10}>
         <Button
