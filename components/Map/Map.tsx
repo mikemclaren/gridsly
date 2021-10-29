@@ -14,8 +14,15 @@ import MapControls from '../MapControls'
 import MapGrid from '../MapGrid'
 import { Coordinates, PartialEntity, Point } from '../Point'
 import FileSaver from 'file-saver'
-import { useRecoilBridgeAcrossReactRoots_UNSTABLE, useRecoilState, useRecoilValue } from 'recoil'
-import { playerEditOpenState, selectedPlayerState, selectedToolState } from '../../state/controls'
+import {
+  useRecoilBridgeAcrossReactRoots_UNSTABLE,
+  useRecoilState
+} from 'recoil'
+import {
+  playerEditOpenState,
+  selectedPlayerState,
+  selectedToolState
+} from '../../state/controls'
 import { PlayerEditBar } from '../PlayerEditBar'
 
 export enum Layers {
@@ -69,8 +76,8 @@ const generateTestGrid = (size = 16) => {
 }
 
 const cellDoesNotExist = (points: Point[], { x, y }: Coordinates) => {
-  for (let i = 0; i < points.length; i++) {
-    if (points[i].coordinates.x === x && points[i].coordinates.y === y) {
+  for (let cell of points) {
+    if (cell.coordinates.x === x && cell.coordinates.y === y) {
       return false
     }
   }
@@ -123,8 +130,12 @@ export default function Map() {
     null
   )
   const [rectangleEnd, setRectangleEnd] = useState<Coordinates | null>(null)
-  const [playerEditOpen, setPlayerEditOpen] = useRecoilState(playerEditOpenState)
-  const [selectedPlayer, setSelectedPlayer] = useRecoilState(selectedPlayerState)
+  const [playerEditOpen, setPlayerEditOpen] =
+    useRecoilState(playerEditOpenState)
+  const [selectedPlayer, setSelectedPlayer] =
+    useRecoilState(selectedPlayerState)
+  const [dragInProgress, setDragInProgress] = useState(false)
+  const [recentCell, setRecentCell] = useState<Coordinates | null>(null)
   const stageRef = useRef<StageType>(null)
 
   const boxRef = useRef<HTMLDivElement>(null)
@@ -157,6 +168,7 @@ export default function Map() {
     setRectangleStarted(null)
     setRectangleEnd(null)
     setPlayerEditOpen(false)
+    setRecentCell(null)
   }, [selectedTool])
 
   useEffect(() => {
@@ -213,12 +225,15 @@ export default function Map() {
             width: 1,
             height: 1,
             type,
-            entity: type === 'player' ? {
-              name: 'PLAYER',
-              color: '#000000',
-              symbol: '@',
-              type: 'player'
-            } : undefined
+            entity:
+              type === 'player'
+                ? {
+                    name: 'PLAYER',
+                    color: '#000000',
+                    symbol: '@',
+                    type: 'player'
+                  }
+                : undefined
           }
         ]
         return [...l]
@@ -273,40 +288,48 @@ export default function Map() {
     })
   }
 
-  const addPlayer = useCallback((gridX: number, gridY: number) => {
-    if (!playerEditOpen) {
-      addSingleCell(Layers.PLAYERS, gridX, gridY, 'player')
-      return
-    }
-
-    // time to move the player
-    setLayers(l => {
-      for (let i = 0; i < l[Layers.PLAYERS].points.length; i++) {
-        if (
-          l[Layers.PLAYERS].points[i].coordinates.x ===
-            selectedPlayer.coordinates.x &&
-          l[Layers.PLAYERS].points[i].coordinates.y ===
-            selectedPlayer.coordinates.y
-        ) {
-          if (cellDoesNotExist(l[Layers.PLAYERS].points, { x: gridX, y: gridY })) {
-            l[Layers.PLAYERS].points[i].coordinates = {
-              x: gridX,
-              y: gridY
-            }
-            setSelectedPlayer({ ...selectedPlayer, coordinates: {
-              x: gridX,
-              y: gridY
-            }})
-          }
-
-          l[Layers.PLAYERS].points = [...l[Layers.PLAYERS].points]
-          return [ ...l ]
-        }
+  const addPlayer = useCallback(
+    (gridX: number, gridY: number) => {
+      if (!playerEditOpen) {
+        addSingleCell(Layers.PLAYERS, gridX, gridY, 'player')
+        return
       }
 
-      return l
-    })
-  }, [playerEditOpen, selectedPlayer])
+      // time to move the player
+      setLayers((l) => {
+        for (let i = 0; i < l[Layers.PLAYERS].points.length; i++) {
+          if (
+            l[Layers.PLAYERS].points[i].coordinates.x ===
+              selectedPlayer.coordinates.x &&
+            l[Layers.PLAYERS].points[i].coordinates.y ===
+              selectedPlayer.coordinates.y
+          ) {
+            if (
+              cellDoesNotExist(l[Layers.PLAYERS].points, { x: gridX, y: gridY })
+            ) {
+              l[Layers.PLAYERS].points[i].coordinates = {
+                x: gridX,
+                y: gridY
+              }
+              setSelectedPlayer({
+                ...selectedPlayer,
+                coordinates: {
+                  x: gridX,
+                  y: gridY
+                }
+              })
+            }
+
+            l[Layers.PLAYERS].points = [...l[Layers.PLAYERS].points]
+            return [...l]
+          }
+        }
+
+        return l
+      })
+    },
+    [playerEditOpen, selectedPlayer]
+  )
 
   const addRectangleSpaces = () => {
     if (rectangleStarted && rectangleEnd) {
@@ -380,21 +403,59 @@ export default function Map() {
     [rectangleStarted, rectangleEnd]
   )
 
-  const onGridMouseMove = (e: KonvaEventObject<MouseEvent>) => {
-    if (rectangleStarted) {
-      const node = e.evt?.target as HTMLElement
-      const { top, left } = node.getBoundingClientRect()
-      const [gridX, gridY] = mousePosOnGrid(
-        e.evt.clientX - left * 2,
-        e.evt.clientY - top * 2
-      )
-      if (rectangleEnd?.x !== gridX || rectangleEnd?.y !== gridY) {
-        setRectangleEnd({ x: gridX, y: gridY })
+  const onGridMouseMove = useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      if (rectangleStarted) {
+        const node = e.evt?.target as HTMLElement
+        const { top, left } = node.getBoundingClientRect()
+        const [gridX, gridY] = mousePosOnGrid(
+          e.evt.clientX - left * 2,
+          e.evt.clientY - top * 2
+        )
+        if (rectangleEnd?.x !== gridX || rectangleEnd?.y !== gridY) {
+          setRectangleEnd({ x: gridX, y: gridY })
+        }
+      } else if (dragInProgress) {
+        const node = e.evt?.target as HTMLElement
+        const { top, left } = node.getBoundingClientRect()
+        const [gridX, gridY] = mousePosOnGrid(
+          e.evt.clientX - left * 2,
+          e.evt.clientY - top * 2
+        )
+
+        if (recentCell?.x !== gridX || recentCell?.y !== gridY) {
+          if (gridX < labelZeroX) {
+            setLabelZeroX(gridX)
+          }
+
+          if (gridY < labelZeroY) {
+            setLabelZeroY(gridY)
+          }
+
+          switch (selectedTool) {
+            case 'single-wall':
+              addSingleWall(gridX, gridY)
+              break
+            case 'eraser':
+              erase(gridX, gridY)
+              break
+            case 'single-space':
+              addSingleSpace(gridX, gridY)
+              break
+            default:
+              break
+          }
+
+          setRecentCell({ x: gridX, y: gridY })
+        }
       }
-    }
-  }
+    },
+    [rectangleStarted, rectangleEnd, dragInProgress, recentCell]
+  )
 
   const onGridClick = (e: KonvaEventObject<MouseEvent>) => {
+    setDragInProgress(true)
+
     const node = e.evt?.target as HTMLElement
     const { top, left } = node.getBoundingClientRect()
     const [gridX, gridY] = mousePosOnGrid(
@@ -445,26 +506,33 @@ export default function Map() {
     )
   }
 
-  const updateSelectedPlayer = useCallback((entity: PartialEntity) => {
-    setLayers(l => {
-      const points = [...l[Layers.PLAYERS].points].map((point) => {
-        if (
-          point.coordinates.x === selectedPlayer.coordinates.x &&
-          point.coordinates.y === selectedPlayer.coordinates.y
-        ) {
-          if (point.entity) {
-            point.entity = { ...point.entity, ...entity }
+  const updateSelectedPlayer = useCallback(
+    (entity: PartialEntity) => {
+      setLayers((l) => {
+        const points = [...l[Layers.PLAYERS].points].map((point) => {
+          if (
+            point.coordinates.x === selectedPlayer.coordinates.x &&
+            point.coordinates.y === selectedPlayer.coordinates.y
+          ) {
+            if (point.entity) {
+              point.entity = { ...point.entity, ...entity }
+            }
           }
-        }
 
-        return point
+          return point
+        })
+
+        l[Layers.PLAYERS].points = [...points]
+
+        return [...l]
       })
+    },
+    [selectedPlayer]
+  )
 
-      l[Layers.PLAYERS].points = [...points]
-
-      return [...l]
-    })
-  }, [selectedPlayer])
+  const onGridDragEnd = () => {
+    setDragInProgress(false)
+  }
 
   const RecoilBridge = useRecoilBridgeAcrossReactRoots_UNSTABLE()
 
@@ -476,7 +544,9 @@ export default function Map() {
       height={window.innerHeight}
       bgColor="blackAlpha.700"
     >
-      {playerEditOpen && <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} />}
+      {playerEditOpen && (
+        <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} />
+      )}
       <Box>
         <Stage
           width={width}
@@ -485,8 +555,8 @@ export default function Map() {
           y={stageY}
           transform={transformStr}
           onMouseDown={onGridClick}
-          onDragMove={onGridMouseMove}
           onMouseMove={onGridMouseMove}
+          onMouseUp={onGridDragEnd}
           ref={stageRef}
         >
           <RecoilBridge>

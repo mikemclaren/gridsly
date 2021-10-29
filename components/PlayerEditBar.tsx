@@ -2,11 +2,12 @@ import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control'
 import { Input, InputGroup, InputLeftElement } from '@chakra-ui/input'
 import { Box, Heading } from '@chakra-ui/layout'
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useRecoilValue } from 'recoil'
-import { selectedPlayerState } from '../state/controls'
+import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil'
+import { playerEditOpenState, selectedPlayerState } from '../state/controls'
 import { PartialEntity } from './Point'
 import { SketchPicker, ColorResult } from 'react-color'
-import { StarIcon } from '@chakra-ui/icons'
+import { CloseIcon, StarIcon } from '@chakra-ui/icons'
+import { IconButton } from '@chakra-ui/button'
 
 export const PlayerEditBar = ({
   updateSelectedPlayer = (entity: PartialEntity) => {}
@@ -15,12 +16,15 @@ export const PlayerEditBar = ({
 
   const [symbol, setSymbol] = useState('')
   const [color, setColor] = useState('')
+  const [name, setName] = useState('')
+  const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
   const colorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setSymbol(selectedPlayer.entity?.symbol || '')
     setColor(selectedPlayer.entity?.color || '')
+    setName(selectedPlayer.entity?.name || '')
   }, [selectedPlayer])
 
   useLayoutEffect(() => {
@@ -51,6 +55,14 @@ export const PlayerEditBar = ({
     })
   }
 
+  const handleNameChange = (event: React.FormEvent<HTMLInputElement>): void => {
+    const val = event.currentTarget.value
+    setName(val)
+    updateSelectedPlayer({
+      name: val
+    })
+  }
+
   const toggleColorPicker = () => {
     setColorPickerOpen(true)
   }
@@ -76,6 +88,18 @@ export const PlayerEditBar = ({
       <Heading as="h3" size="md">
         Edit {selectedPlayer != null ? 'Player' : 'Creature'}
       </Heading>
+
+      <IconButton colorScheme="purple" size="sm" aria-label="Close" icon={<CloseIcon />} position="absolute" right="2" top="2" onClick={() => setPlayerEditOpen(false)} />
+
+      <FormControl marginTop="1">
+        <FormLabel fontSize="small">Name</FormLabel>
+        <Input
+          type="text"
+          maxLength={32}
+          value={name}
+          onChange={handleNameChange}
+        />
+      </FormControl>
 
       <FormControl marginTop="1">
         <FormLabel fontSize="small">Display Symbol</FormLabel>

@@ -1,8 +1,10 @@
+import React, { useCallback } from 'react'
 import { Circle, Rect, Text } from 'react-konva'
 import {
+  useRecoilValue,
   useSetRecoilState
 } from 'recoil'
-import { playerEditOpenState, selectedPlayerState } from '../state/controls'
+import { playerEditOpenState, selectedPlayerState, selectedToolState } from '../state/controls'
 import { CELL_SCALAR } from '../_vars'
 
 // allows for easy repeat
@@ -223,13 +225,17 @@ const PlayerComponent = ({
   const calcWidth = point.width * CELL_SCALAR * zoom
   const calcHeight = point.height * CELL_SCALAR * zoom
 
+  const selectedTool = useRecoilValue(selectedToolState)
+
   const setSelectedPlayer = useSetRecoilState(selectedPlayerState)
   const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
 
-  const onClick = () => {
-    setSelectedPlayer(point)
-    setPlayerEditOpen(true)
-  }
+  const onClick = useCallback(() => {
+    if (selectedTool === 'single-player') {
+      setSelectedPlayer(point)
+      setPlayerEditOpen(true)
+    }
+  }, [selectedTool])
 
   return (
     <>
@@ -244,8 +250,9 @@ const PlayerComponent = ({
       />
       <Text
         text={point.entity?.symbol || "@"}
-        fontSize={(CELL_SCALAR * zoom) / 2}
+        fontSize={(CELL_SCALAR * zoom) / 1.8}
         fontStyle="bold"
+        fontFamily="monospace"
         x={x}
         y={y + ((CELL_SCALAR * zoom) / 2 - (CELL_SCALAR * zoom) / 4)}
         fill="#FFFFFF"
