@@ -269,12 +269,14 @@ const PlayerComponent = ({
   const onClick = useCallback(() => {
     if (selectedTool === 'single-player') {
       setSelectedPlayer({
-        ...point
+        ...point,
+        entity: point.entity ? { ...point.entity } : undefined
       })
       setPlayerEditOpen(true)
     } else if (selectedTool === 'single-npc') {
       setSelectedPlayer({
-        ...point
+        ...point,
+        entity: point.entity ? { ...point.entity } : undefined
       })
       setPlayerEditOpen(true)
     }
