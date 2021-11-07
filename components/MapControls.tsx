@@ -11,7 +11,7 @@ import {
   PlusSquareIcon,
   SmallCloseIcon
 } from '@chakra-ui/icons'
-import { Box } from '@chakra-ui/layout'
+import { Box, HStack } from '@chakra-ui/layout'
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/menu'
 import { Stack } from '@chakra-ui/react'
 import React from 'react'
@@ -21,7 +21,9 @@ import { selectedToolState } from '../state/controls'
 export const MapControls = ({
   exportPNG = () => {},
   changeZoom = (zoomDiff: number) => () => {},
-  zoom = 0
+  zoom = 0,
+  selectMapToEdit = (num: number) => {},
+  currentMap = 0
 }) => {
   const [selectedTool, setSelectedTool] = useRecoilState(selectedToolState)
   return (
@@ -39,11 +41,7 @@ export const MapControls = ({
             colorScheme="purple"
             width="100%"
             leftIcon={<DragHandleIcon />}
-            variant={
-              selectedTool === 'movement'
-                ? 'solid'
-                : 'outline'
-            }
+            variant={selectedTool === 'movement' ? 'solid' : 'outline'}
             onClick={() => setSelectedTool('movement')}
           >
             Move
@@ -80,7 +78,9 @@ export const MapControls = ({
               width="100%"
               colorScheme="purple"
               variant={
-                ['single-wall', 'single-door', 'single-obstacle'].indexOf(selectedTool) > -1
+                ['single-wall', 'single-door', 'single-obstacle'].indexOf(
+                  selectedTool
+                ) > -1
                   ? 'solid'
                   : 'outline'
               }
@@ -161,10 +161,33 @@ export const MapControls = ({
           />
         </ButtonGroup>
       </Box>
-      <Box>
+      <Box paddingBottom={10}>
         <Button onClick={exportPNG} width="100%" leftIcon={<DownloadIcon />}>
           Export (PNG)
         </Button>
+      </Box>
+      <Box>
+        <FormLabel>Maps:</FormLabel>
+        <ButtonGroup width="100%">
+          <Button
+            isActive={currentMap === 0}
+            onClick={() => selectMapToEdit(0)}
+          >
+            1
+          </Button>
+          <Button
+            isActive={currentMap === 1}
+            onClick={() => selectMapToEdit(1)}
+          >
+            2
+          </Button>
+          <Button
+            isActive={currentMap === 2}
+            onClick={() => selectMapToEdit(2)}
+          >
+            3
+          </Button>
+        </ButtonGroup>
       </Box>
     </Box>
   )

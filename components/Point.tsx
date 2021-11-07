@@ -244,11 +244,14 @@ const PlayerComponent = ({
 
   const selectedTool = useRecoilValue(selectedToolState)
 
-  const [selectedPlayer, setSelectedPlayer] = useRecoilState(selectedPlayerState)
+  const [selectedPlayer, setSelectedPlayer] =
+    useRecoilState(selectedPlayerState)
   const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
   const [accentColor, setAccentColor] = useState('')
   const [calcWidth, setCalcWidth] = useState(point.width * CELL_SCALAR * zoom)
-  const [calcHeight, setCalcHeight] = useState(point.height * CELL_SCALAR * zoom)
+  const [calcHeight, setCalcHeight] = useState(
+    point.height * CELL_SCALAR * zoom
+  )
 
   useEffect(() => {
     setAccentColor(
@@ -265,7 +268,14 @@ const PlayerComponent = ({
 
   const onClick = useCallback(() => {
     if (selectedTool === 'single-player') {
-      setSelectedPlayer(point)
+      setSelectedPlayer({
+        ...point
+      })
+      setPlayerEditOpen(true)
+    } else if (selectedTool === 'single-npc') {
+      setSelectedPlayer({
+        ...point
+      })
       setPlayerEditOpen(true)
     }
   }, [selectedTool])
@@ -306,9 +316,7 @@ const PlayerComponent = ({
             selectedPlayer?.coordinates === point.coordinates ? '#F56565' : ''
           }
           strokeWidth={
-            selectedPlayer?.coordinates === point.coordinates
-              ? 4 * zoom
-              : 0
+            selectedPlayer?.coordinates === point.coordinates ? 4 * zoom : 0
           }
         />
       )}

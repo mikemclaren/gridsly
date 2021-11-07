@@ -147,6 +147,7 @@ export default function Map() {
   const [labelZeroY, setLabelZeroY] = useState(0)
   const [zoomVal, setZoomVal] = useState(0.5)
   const [layers, setLayers] = useState<LayerType[]>(generateTestGrid())
+  const [currentMap, setCurrentMap] = useState<number>(0)
   const [rectangleStarted, setRectangleStarted] = useState<Coordinates | null>(
     null
   )
@@ -181,8 +182,16 @@ export default function Map() {
       const h = await hash(JSON.stringify(layers))
       setMapHash((existingHash) => {
         if (existingHash !== h) {
-          localStorage.setItem('gridsly-map-layers', JSON.stringify(layers))
-          localStorage.setItem('gridsly-map-sha', h)
+          if (currentMap === 0) {
+            localStorage.setItem('gridsly-map-layers', JSON.stringify(layers))
+            localStorage.setItem('gridsly-map-sha', h)
+          } else {
+            localStorage.setItem(
+              `gridsly-map-layers-${currentMap}`,
+              JSON.stringify(layers)
+            )
+            localStorage.setItem(`gridsly-map-sha-${currentMap}`, h)
+          }
 
           return h
         }
@@ -190,7 +199,7 @@ export default function Map() {
         return existingHash
       })
     })()
-  }, [layers])
+  }, [layers, currentMap])
 
   useEffect(() => {
     const reposition = () => {
@@ -286,15 +295,15 @@ export default function Map() {
     }
 
     if (type === 'npc') {
-      cell.entity = {
-        name: 'NPC',
-        color: '#805ad5',
-        symbol: '>',
-        type: 'npc'
-      }
-
       if (npcOverride) {
         cell.entity = { ...npcOverride }
+      } else {
+        cell.entity = {
+          name: 'NPC',
+          color: '#805ad5',
+          symbol: '>',
+          type: 'npc'
+        }
       }
     }
 
@@ -645,9 +654,18 @@ export default function Map() {
           ) {
             if (point.entity && entity) {
               point.entity = { ...point.entity, ...entity }
+              setSelectedPlayer({
+                ...selectedPlayer,
+                entity: point.entity
+              })
             } else if (width && height) {
               point.width = width
               point.height = height
+              setSelectedPlayer({
+                ...selectedPlayer,
+                width,
+                height
+              })
             }
           }
 
@@ -668,15 +686,48 @@ export default function Map() {
     }
   }
 
-  const duplicateSelectedNPC = () => {
+  const selectMapToEdit = useCallback(
+    (num: number) => {
+      if (currentMap !== num) {
+        let l = localStorage.getItem('gridsly-map-layers')
+        let h = localStorage.getItem('gridsly-map-sha')
+        if (num > 0) {
+          l = localStorage.getItem(`gridsly-map-layers-${num}`)
+          h = localStorage.getItem(`gridsly-map-sha-${num}`)
+        }
+        if (l) {
+          try {
+            setLayers(JSON.parse(l))
+            setMapHash(l)
+          } catch (ex) {
+            setLayers(generateTestGrid())
+            console.log(ex)
+          }
+        } else {
+          setLayers(generateTestGrid())
+        }
+
+        setCurrentMap(num)
+      }
+    },
+    [currentMap]
+  )
+
+  const duplicateSelectedNPC = useCallback(() => {
     let coords = {
       x: selectedPlayer.coordinates.x + 1,
       y: selectedPlayer.coordinates.y
     }
     if (cellDoesNotExist(layers[Layers.PLAYERS].points, coords)) {
-      addSingleCell(Layers.PLAYERS, coords.x, coords.y, 'npc', selectedPlayer.entity)
+      addSingleCell(
+        Layers.PLAYERS,
+        coords.x,
+        coords.y,
+        'npc',
+        selectedPlayer.entity
+      )
     }
-  }
+  }, [selectedPlayer?.entity])
 
   const RecoilBridge = useRecoilBridgeAcrossReactRoots_UNSTABLE()
 
@@ -689,7 +740,10 @@ export default function Map() {
       bgColor="gray.700"
     >
       {playerEditOpen && (
-        <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} duplicateSelectedNPC={duplicateSelectedNPC} />
+        <PlayerEditBar
+          updateSelectedPlayer={updateSelectedPlayer}
+          duplicateSelectedNPC={duplicateSelectedNPC}
+        />
       )}
       <Box>
         <Stage
@@ -720,6 +774,8 @@ export default function Map() {
         exportPNG={exportPNG}
         changeZoom={changeZoom}
         zoom={zoomVal}
+        selectMapToEdit={selectMapToEdit}
+        currentMap={currentMap}
       />
     </Box>
   )
