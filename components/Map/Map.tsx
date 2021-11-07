@@ -12,7 +12,7 @@ import { Layer, Stage } from 'react-konva'
 import { CELL_SCALAR } from '../../_vars'
 import MapControls from '../MapControls'
 import MapGrid from '../MapGrid'
-import { Coordinates, PartialEntity, Point } from '../Point'
+import { Coordinates, Entity, PartialEntity, Point } from '../Point'
 import FileSaver from 'file-saver'
 import {
   useRecoilBridgeAcrossReactRoots_UNSTABLE,
@@ -263,7 +263,8 @@ export default function Map() {
     layer: number,
     gridX: number,
     gridY: number,
-    type?: string | undefined
+    type?: string | undefined,
+    npcOverride?: Entity | undefined
   ) => {
     const cell = {
       coordinates: {
@@ -290,6 +291,10 @@ export default function Map() {
         color: '#805ad5',
         symbol: '>',
         type: 'npc'
+      }
+
+      if (npcOverride) {
+        cell.entity = { ...npcOverride }
       }
     }
 
@@ -656,6 +661,16 @@ export default function Map() {
     }
   }
 
+  const duplicateSelectedNPC = () => {
+    let coords = {
+      x: selectedPlayer.coordinates.x + 1,
+      y: selectedPlayer.coordinates.y
+    }
+    if (cellDoesNotExist(layers[Layers.PLAYERS].points, coords)) {
+      addSingleCell(Layers.PLAYERS, coords.x, coords.y, 'npc', selectedPlayer.entity)
+    }
+  }
+
   const RecoilBridge = useRecoilBridgeAcrossReactRoots_UNSTABLE()
 
   return (
@@ -667,7 +682,7 @@ export default function Map() {
       bgColor="gray.700"
     >
       {playerEditOpen && (
-        <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} />
+        <PlayerEditBar updateSelectedPlayer={updateSelectedPlayer} duplicateSelectedNPC={duplicateSelectedNPC} />
       )}
       <Box>
         <Stage

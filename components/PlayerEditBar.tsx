@@ -6,13 +6,18 @@ import { useRecoilCallback, useRecoilValue, useSetRecoilState } from 'recoil'
 import { playerEditOpenState, selectedPlayerState } from '../state/controls'
 import { PartialEntity } from './Point'
 import { SketchPicker, ColorResult } from 'react-color'
-import { CloseIcon, StarIcon } from '@chakra-ui/icons'
-import { IconButton } from '@chakra-ui/button'
+import { CloseIcon, CopyIcon, StarIcon } from '@chakra-ui/icons'
+import { Button, IconButton } from '@chakra-ui/button'
 import { Select } from '@chakra-ui/select'
 import { Radio, RadioGroup } from '@chakra-ui/radio'
 
 export const PlayerEditBar = ({
-  updateSelectedPlayer = (entity: PartialEntity | null, width?: number, height?: number) => {}
+  updateSelectedPlayer = (
+    entity: PartialEntity | null,
+    width?: number,
+    height?: number
+  ) => {},
+  duplicateSelectedNPC = () => {}
 }) => {
   const selectedPlayer = useRecoilValue(selectedPlayerState)
 
@@ -59,14 +64,11 @@ export const PlayerEditBar = ({
     })
   }
 
-  const onSizeChange = (
-    nextChange: string
-  ): void => {
+  const onSizeChange = (nextChange: string): void => {
     const val = nextChange
     setSize(parseInt(val))
     updateSelectedPlayer(null, parseInt(val), parseInt(val))
   }
-
 
   const handleNameChange = (event: React.FormEvent<HTMLInputElement>): void => {
     const val = event.currentTarget.value
@@ -140,7 +142,12 @@ export const PlayerEditBar = ({
             pointerEvents="none"
             children={<StarIcon color={color} />}
           />
-          <Input type="text" value={color} onClick={toggleColorPicker} readOnly />
+          <Input
+            type="text"
+            value={color}
+            onClick={toggleColorPicker}
+            readOnly
+          />
         </InputGroup>
 
         {colorPickerOpen && (
@@ -158,6 +165,19 @@ export const PlayerEditBar = ({
           <Radio value={3}>Large</Radio>
         </Stack>
       </RadioGroup>
+
+      {selectedPlayer.entity?.type === 'npc' && (
+        <FormControl marginTop="3">
+          <Button
+            leftIcon={<CopyIcon />}
+            width="100%"
+            colorScheme="purple"
+            onClick={duplicateSelectedNPC}
+          >
+            Duplicate
+          </Button>
+        </FormControl>
+      )}
     </Box>
   )
 }
