@@ -111,6 +111,17 @@ const rotatePosition = (position: string | undefined) => {
   }
 }
 
+const hash = async (str: string) => {
+  const utf8 = new TextEncoder().encode(str)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', utf8)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray
+    .map((bytes) => bytes.toString(16).padStart(2, '0'))
+    .join('')
+
+  return hashHex
+}
+
 export default function Map() {
   const PADDING = CELL_SCALAR * 4
 
@@ -130,6 +141,7 @@ export default function Map() {
     null
   )
   const [rectangleEnd, setRectangleEnd] = useState<Coordinates | null>(null)
+  const [mapHash, setMapHash] = useState<string | null>(null)
   const [playerEditOpen, setPlayerEditOpen] =
     useRecoilState(playerEditOpenState)
   const [selectedPlayer, setSelectedPlayer] =
@@ -139,6 +151,36 @@ export default function Map() {
   const stageRef = useRef<StageType>(null)
 
   const boxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const l = localStorage.getItem('gridsly-map-layers')
+    const h = localStorage.getItem('gridsly-map-sha')
+    if (l) {
+      try {
+        setLayers(JSON.parse(l))
+        setMapHash(l)
+      } catch (ex) {
+        setLayers(generateTestGrid())
+        console.log(ex)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    ;(async function () {
+      const h = await hash(JSON.stringify(layers))
+      setMapHash((existingHash) => {
+        if (existingHash !== h) {
+          localStorage.setItem('gridsly-map-layers', JSON.stringify(layers))
+          localStorage.setItem('gridsly-map-sha', h)
+
+          return h
+        }
+
+        return existingHash
+      })
+    })()
+  }, [layers])
 
   useEffect(() => {
     const reposition = () => {
@@ -243,10 +285,7 @@ export default function Map() {
 
     setLayers((l) => {
       if (cellDoesNotExist(l[layer].points, { x: gridX, y: gridY })) {
-        l[layer].points = [
-          ...l[layer].points,
-          cell
-        ]
+        l[layer].points = [...l[layer].points, cell]
         return [...l]
       }
 
@@ -306,7 +345,7 @@ export default function Map() {
       if (!playerEditOpen) {
         const cell = addSingleCell(Layers.PLAYERS, gridX, gridY, type)
         setSelectedPlayer({
-          ...cell,
+          ...cell
         })
         setPlayerEditOpen(true)
         return
