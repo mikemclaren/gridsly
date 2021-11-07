@@ -80,7 +80,7 @@ export const MapControls = ({
               width="100%"
               colorScheme="purple"
               variant={
-                ['single-wall', 'single-door'].indexOf(selectedTool) > -1
+                ['single-wall', 'single-door', 'single-obstacle'].indexOf(selectedTool) > -1
                   ? 'solid'
                   : 'outline'
               }
@@ -94,6 +94,9 @@ export const MapControls = ({
               </MenuItem>
               <MenuItem onClick={() => setSelectedTool('single-door')}>
                 Door
+              </MenuItem>
+              <MenuItem onClick={() => setSelectedTool('single-obstacle')}>
+                Obstacle
               </MenuItem>
             </MenuList>
           </Menu>

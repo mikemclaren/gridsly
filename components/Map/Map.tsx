@@ -318,6 +318,10 @@ export default function Map() {
     addSingleCell(Layers.BARRIERS, gridX, gridY, 'wall')
   }
 
+  const addSingleObstacle = (gridX: number, gridY: number) => {
+    addSingleCell(Layers.BARRIERS, gridX, gridY, 'obstacle')
+  }
+
   const addSingleDoor = (gridX: number, gridY: number) => {
     setLayers((l) => {
       if (cellDoesNotExist(l[Layers.BARRIERS].points, { x: gridX, y: gridY })) {
@@ -592,6 +596,9 @@ export default function Map() {
         break
       case 'single-door':
         addSingleDoor(gridX, gridY)
+        break
+      case 'single-obstacle':
+        addSingleObstacle(gridX, gridY)
         break
       case 'rectangle-space':
         handleRectangleClick(gridX, gridY)

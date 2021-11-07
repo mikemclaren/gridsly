@@ -98,6 +98,17 @@ export const PointComponent = ({
           id={`${coordinates.x}:${coordinates.y}`}
         />
       )
+    case 'obstacle':
+      return (
+        <Rect
+          x={x}
+          y={y}
+          width={calcWidth}
+          height={calcHeight}
+          fill="#FAF089"
+          id={`${coordinates.x}:${coordinates.y}`}
+        />
+      )
     case 'door':
       return (
         <DoorComponent
