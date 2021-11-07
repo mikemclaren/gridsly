@@ -6,8 +6,8 @@ import {
   ChevronDownIcon,
   DeleteIcon,
   DownloadIcon,
+  DragHandleIcon,
   MinusIcon,
-  NotAllowedIcon,
   PlusSquareIcon,
   SmallCloseIcon
 } from '@chakra-ui/icons'
@@ -38,15 +38,15 @@ export const MapControls = ({
           <Button
             colorScheme="purple"
             width="100%"
-            leftIcon={<NotAllowedIcon />}
+            leftIcon={<DragHandleIcon />}
             variant={
-              selectedTool === ''
+              selectedTool === 'movement'
                 ? 'solid'
                 : 'outline'
             }
-            onClick={() => setSelectedTool('')}
+            onClick={() => setSelectedTool('movement')}
           >
-            No Edit Tool
+            Move
           </Button>
           <Menu>
             <MenuButton

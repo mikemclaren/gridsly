@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react'
 import { Circle, Rect, Text } from 'react-konva'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import {
   playerEditOpenState,
   selectedPlayerState,
@@ -233,7 +233,7 @@ const PlayerComponent = ({
 
   const selectedTool = useRecoilValue(selectedToolState)
 
-  const setSelectedPlayer = useSetRecoilState(selectedPlayerState)
+  const [selectedPlayer, setSelectedPlayer] = useRecoilState(selectedPlayerState)
   const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
   const [accentColor, setAccentColor] = useState('')
   const [calcWidth, setCalcWidth] = useState(point.width * CELL_SCALAR * zoom)
@@ -270,8 +270,16 @@ const PlayerComponent = ({
           fill={point.entity?.color || 'red'}
           id={`${point.coordinates.x}:${point.coordinates.y}`}
           onClick={onClick}
-          strokeWidth={2 * zoom}
-          stroke={accentColor}
+          strokeWidth={
+            selectedPlayer?.coordinates === point.coordinates
+              ? 4 * zoom
+              : 2 * zoom
+          }
+          stroke={
+            selectedPlayer?.coordinates === point.coordinates
+              ? '#F56565'
+              : accentColor
+          }
         />
       )}
       {point.entity?.type === 'npc' && (
@@ -283,6 +291,14 @@ const PlayerComponent = ({
           fill={point.entity?.color || '#805ad5'}
           id={`${point.coordinates.x}:${point.coordinates.y}`}
           onClick={onClick}
+          stroke={
+            selectedPlayer?.coordinates === point.coordinates ? '#F56565' : ''
+          }
+          strokeWidth={
+            selectedPlayer?.coordinates === point.coordinates
+              ? 4 * zoom
+              : 0
+          }
         />
       )}
 
@@ -293,7 +309,11 @@ const PlayerComponent = ({
         fontFamily="monospace"
         fill={accentColor}
         x={x}
-        y={y + ((CELL_SCALAR * zoom * point.width) / 2 - (CELL_SCALAR * zoom * point.height) / 4)}
+        y={
+          y +
+          ((CELL_SCALAR * zoom * point.width) / 2 -
+            (CELL_SCALAR * zoom * point.height) / 4)
+        }
         width={point.width * CELL_SCALAR * zoom}
         align="center"
         id={`${point.coordinates.x}:${point.coordinates.y}`}

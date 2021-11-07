@@ -8,7 +8,7 @@ import {
   useState,
   useEffect
 } from 'react'
-import { Stage } from 'react-konva'
+import { Layer, Stage } from 'react-konva'
 import { CELL_SCALAR } from '../../_vars'
 import MapControls from '../MapControls'
 import MapGrid from '../MapGrid'
@@ -83,6 +83,16 @@ const cellDoesNotExist = (points: Point[], { x, y }: Coordinates) => {
   }
 
   return true
+}
+
+const findCell = (points: Point[], { x, y }: Coordinates) => {
+  for (let cell of points) {
+    if (cell.coordinates.x === x && cell.coordinates.y === y) {
+      return cell
+    }
+  }
+
+  return null
 }
 
 const eraseCell = (points: Point[], { x, y }: Coordinates): Point[] => {
@@ -340,6 +350,51 @@ export default function Map() {
     })
   }
 
+  const handlePossibleSelect = (gridX: number, gridY: number) => {
+    if (
+      selectedPlayer?.coordinates.x === gridX &&
+      selectedPlayer?.coordinates.y === gridY
+    ) {
+      setSelectedPlayer(null as unknown as Point)
+      return
+    }
+
+    const cell = findCell(layers[Layers.PLAYERS].points, { x: gridX, y: gridY })
+    if (cell) {
+      setSelectedPlayer({
+        ...cell
+      })
+    } else if (selectedPlayer != null) {
+      setLayers((l) => {
+        for (let i = 0; i < l[Layers.PLAYERS].points.length; i++) {
+          if (
+            l[Layers.PLAYERS].points[i].coordinates.x ===
+              selectedPlayer.coordinates.x &&
+            l[Layers.PLAYERS].points[i].coordinates.y ===
+              selectedPlayer.coordinates.y
+          ) {
+            if (
+              cellDoesNotExist(l[Layers.PLAYERS].points, { x: gridX, y: gridY })
+            ) {
+              l[Layers.PLAYERS].points[i].coordinates = {
+                x: gridX,
+                y: gridY
+              }
+              setSelectedPlayer({
+                ...l[Layers.PLAYERS].points[i]
+              })
+            }
+
+            l[Layers.PLAYERS].points = [...l[Layers.PLAYERS].points]
+            return [...l]
+          }
+        }
+
+        return l
+      })
+    }
+  }
+
   const addPlayer = useCallback(
     (gridX: number, gridY: number, type = 'player') => {
       if (!playerEditOpen) {
@@ -368,11 +423,7 @@ export default function Map() {
                 y: gridY
               }
               setSelectedPlayer({
-                ...selectedPlayer,
-                coordinates: {
-                  x: gridX,
-                  y: gridY
-                }
+                ...l[Layers.PLAYERS].points[i]
               })
             }
 
@@ -552,6 +603,8 @@ export default function Map() {
       case 'single-space':
         addSingleSpace(gridX, gridY)
         break
+      case 'movement':
+        handlePossibleSelect(gridX, gridY)
       default:
         break
     }
