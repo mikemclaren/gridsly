@@ -8,16 +8,31 @@ import {
 } from '../state/controls'
 import { calculateTextColorForBackground, CELL_SCALAR } from '../_vars'
 
+const memoize = (fn: (arg0: any) => any) => {
+  let cache: any = {};
+  return (...args: any[]) => {
+    let n = args[0];
+    if (n in cache) {
+      return cache[n];
+    }
+    else {
+      let result = fn(n);
+      cache[n] = result;
+      return result;
+    }
+  }
+}
+
 // allows for easy repeat
 const ABCS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆËĮØÛ'
-const charAt = (index: number) => {
+const charAt = memoize((index: number) => {
   let trueIndex = index
   while (trueIndex >= ABCS.length) {
     trueIndex -= ABCS.length
   }
 
   return ABCS[trueIndex]
-}
+})
 
 export type Coordinates = {
   x: number
@@ -84,6 +99,7 @@ export const PointComponent = React.memo(({
           stroke="#4A5568"
           id={`${coordinates.x}:${coordinates.y}`}
           perfectDrawEnabled={false}
+          transformsEnabled="position"
         />
       )
     case 'wall':
@@ -96,6 +112,7 @@ export const PointComponent = React.memo(({
           fill="#718096"
           id={`${coordinates.x}:${coordinates.y}`}
           perfectDrawEnabled={false}
+          transformsEnabled="position"
         />
       )
     case 'obstacle':
@@ -108,6 +125,7 @@ export const PointComponent = React.memo(({
           fill="#FAF089"
           id={`${coordinates.x}:${coordinates.y}`}
           perfectDrawEnabled={false}
+          transformsEnabled="position"
         />
       )
     case 'door':
@@ -154,7 +172,7 @@ export const PointComponent = React.memo(({
   }
 })
 
-const SpaceComponent = ({
+const SpaceComponent = React.memo(({
   point: { coordinates, width, height, type = 'space' },
   labelZeroX,
   labelZeroY
@@ -177,6 +195,7 @@ const SpaceComponent = ({
         stroke="#CBD5E0"
         id={`${coordinates.x}:${coordinates.y}`}
         perfectDrawEnabled={false}
+        transformsEnabled="position"
       />
       <Text
         text={`${charAt(coordinates.x + Math.abs(labelZeroX))}${
@@ -192,9 +211,9 @@ const SpaceComponent = ({
       />
     </>
   )
-}
+})
 
-const DoorComponent = ({
+const DoorComponent = React.memo(({
   point: { coordinates, width, height, position = 'left' },
 }: ComponentProps) => {
   const fullWidth = width * CELL_SCALAR
@@ -227,11 +246,12 @@ const DoorComponent = ({
       fill="#9C4221"
       id={`${coordinates.x}:${coordinates.y}`}
       perfectDrawEnabled={false}
+      transformsEnabled="position"
     />
   )
-}
+})
 
-const PlayerComponent = ({
+const PlayerComponent = React.memo(({
   point,
   labelZeroX,
   labelZeroY
@@ -301,6 +321,7 @@ const PlayerComponent = ({
               : accentColor
           }
           perfectDrawEnabled={false}
+          transformsEnabled="position"
         />
       )}
       {point.entity?.type === 'npc' && (
@@ -319,6 +340,7 @@ const PlayerComponent = ({
             selectedPlayer?.coordinates === point.coordinates ? 4 : 0
           }
           perfectDrawEnabled={false}
+          transformsEnabled="position"
         />
       )}
 
@@ -341,4 +363,4 @@ const PlayerComponent = ({
       />
     </>
   )
-}
+})
