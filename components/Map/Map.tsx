@@ -133,7 +133,7 @@ const hash = async (str: string) => {
 }
 
 export default function Map() {
-  const PADDING = CELL_SCALAR * 4
+  const PADDING = CELL_SCALAR * 6
 
   const [transformStr, setTransformStr] = useState('')
   const [stageX, setStageX] = useState(0)
@@ -756,12 +756,13 @@ export default function Map() {
           onMouseMove={onGridMouseMove}
           onMouseUp={onGridDragEnd}
           ref={stageRef}
+          scaleX={zoomVal}
+          scaleY={zoomVal}
         >
           <RecoilBridge>
             <MapGrid
               width={width}
               height={height}
-              zoom={zoomVal}
               layers={layers}
               labelZeroX={labelZeroX}
               labelZeroY={labelZeroY}

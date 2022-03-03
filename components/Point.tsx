@@ -49,12 +49,11 @@ export type Point = {
 
 type ComponentProps = {
   point: Point
-  zoom: number
   labelZeroY: number
   labelZeroX: number
 }
 
-export const PointComponent = ({
+export const PointComponent = React.memo(({
   point: {
     coordinates,
     width,
@@ -63,15 +62,14 @@ export const PointComponent = ({
     position = 'left',
     entity
   },
-  zoom,
   labelZeroX,
   labelZeroY
 }: ComponentProps) => {
-  const x = coordinates.x * CELL_SCALAR * zoom
-  const y = coordinates.y * CELL_SCALAR * zoom
+  const x = coordinates.x * CELL_SCALAR
+  const y = coordinates.y * CELL_SCALAR
 
-  const calcWidth = width * CELL_SCALAR * zoom
-  const calcHeight = height * CELL_SCALAR * zoom
+  const calcWidth = width * CELL_SCALAR
+  const calcHeight = height * CELL_SCALAR
 
   switch (type) {
     case 'mouse-select':
@@ -82,9 +80,10 @@ export const PointComponent = ({
           width={calcWidth}
           height={calcHeight}
           fill="rgba(0, 0, 0, 0.25)"
-          strokeWidth={2 * zoom}
+          strokeWidth={2}
           stroke="#4A5568"
           id={`${coordinates.x}:${coordinates.y}`}
+          perfectDrawEnabled={false}
         />
       )
     case 'wall':
@@ -96,6 +95,7 @@ export const PointComponent = ({
           height={calcHeight}
           fill="#718096"
           id={`${coordinates.x}:${coordinates.y}`}
+          perfectDrawEnabled={false}
         />
       )
     case 'obstacle':
@@ -107,6 +107,7 @@ export const PointComponent = ({
           height={calcHeight}
           fill="#FAF089"
           id={`${coordinates.x}:${coordinates.y}`}
+          perfectDrawEnabled={false}
         />
       )
     case 'door':
@@ -118,7 +119,6 @@ export const PointComponent = ({
             width,
             position
           }}
-          zoom={zoom}
           labelZeroX={labelZeroX}
           labelZeroY={labelZeroY}
         />
@@ -134,7 +134,6 @@ export const PointComponent = ({
             position,
             entity
           }}
-          zoom={zoom}
           labelZeroX={labelZeroX}
           labelZeroY={labelZeroY}
         />
@@ -148,25 +147,23 @@ export const PointComponent = ({
             width,
             height
           }}
-          zoom={zoom}
           labelZeroX={labelZeroX}
           labelZeroY={labelZeroY}
         />
       )
   }
-}
+})
 
 const SpaceComponent = ({
   point: { coordinates, width, height, type = 'space' },
-  zoom,
   labelZeroX,
   labelZeroY
 }: ComponentProps) => {
-  const x = coordinates.x * CELL_SCALAR * zoom
-  const y = coordinates.y * CELL_SCALAR * zoom
+  const x = coordinates.x * CELL_SCALAR
+  const y = coordinates.y * CELL_SCALAR
 
-  const calcWidth = width * CELL_SCALAR * zoom
-  const calcHeight = height * CELL_SCALAR * zoom
+  const calcWidth = width * CELL_SCALAR
+  const calcHeight = height * CELL_SCALAR
 
   return (
     <>
@@ -176,19 +173,20 @@ const SpaceComponent = ({
         width={calcWidth}
         height={calcHeight}
         fill="#E2E8F0"
-        strokeWidth={2 * zoom}
+        strokeWidth={2}
         stroke="#CBD5E0"
         id={`${coordinates.x}:${coordinates.y}`}
+        perfectDrawEnabled={false}
       />
       <Text
         text={`${charAt(coordinates.x + Math.abs(labelZeroX))}${
           coordinates.y + Math.abs(labelZeroY)
         }`}
-        fontSize={(CELL_SCALAR * zoom) / 4}
+        fontSize={(CELL_SCALAR) / 4}
         x={x}
-        y={y + ((CELL_SCALAR * zoom) / 2 - (CELL_SCALAR * zoom) / 8)}
+        y={y + ((CELL_SCALAR) / 2 - (CELL_SCALAR) / 8)}
         fill="#2D3748"
-        width={width * CELL_SCALAR * zoom}
+        width={width * CELL_SCALAR}
         align="center"
         id={`${coordinates.x}:${coordinates.y}`}
       />
@@ -198,14 +196,13 @@ const SpaceComponent = ({
 
 const DoorComponent = ({
   point: { coordinates, width, height, position = 'left' },
-  zoom
 }: ComponentProps) => {
-  const fullWidth = width * CELL_SCALAR * zoom
-  const fullHeight = height * CELL_SCALAR * zoom
+  const fullWidth = width * CELL_SCALAR
+  const fullHeight = height * CELL_SCALAR
   let calcWidth = fullWidth
   let calcHeight = fullHeight
-  let calcX = coordinates.x * CELL_SCALAR * zoom
-  let calcY = coordinates.y * CELL_SCALAR * zoom
+  let calcX = coordinates.x * CELL_SCALAR
+  let calcY = coordinates.y * CELL_SCALAR
 
   if (position === 'left' || position === 'right') {
     calcWidth /= 4
@@ -229,18 +226,18 @@ const DoorComponent = ({
       height={calcHeight}
       fill="#9C4221"
       id={`${coordinates.x}:${coordinates.y}`}
+      perfectDrawEnabled={false}
     />
   )
 }
 
 const PlayerComponent = ({
   point,
-  zoom,
   labelZeroX,
   labelZeroY
 }: ComponentProps) => {
-  const x = point.coordinates.x * CELL_SCALAR * zoom
-  const y = point.coordinates.y * CELL_SCALAR * zoom
+  const x = point.coordinates.x * CELL_SCALAR
+  const y = point.coordinates.y * CELL_SCALAR
 
   const selectedTool = useRecoilValue(selectedToolState)
 
@@ -248,9 +245,9 @@ const PlayerComponent = ({
     useRecoilState(selectedPlayerState)
   const setPlayerEditOpen = useSetRecoilState(playerEditOpenState)
   const [accentColor, setAccentColor] = useState('')
-  const [calcWidth, setCalcWidth] = useState(point.width * CELL_SCALAR * zoom)
+  const [calcWidth, setCalcWidth] = useState(point.width * CELL_SCALAR)
   const [calcHeight, setCalcHeight] = useState(
-    point.height * CELL_SCALAR * zoom
+    point.height * CELL_SCALAR
   )
 
   useEffect(() => {
@@ -262,9 +259,9 @@ const PlayerComponent = ({
   }, [point.entity?.color])
 
   useEffect(() => {
-    setCalcWidth(point.width * CELL_SCALAR * zoom)
-    setCalcHeight(point.height * CELL_SCALAR * zoom)
-  }, [point.width, point.height, zoom])
+    setCalcWidth(point.width * CELL_SCALAR)
+    setCalcHeight(point.height * CELL_SCALAR)
+  }, [point.width, point.height])
 
   const onClick = useCallback(() => {
     if (selectedTool === 'single-player') {
@@ -295,14 +292,15 @@ const PlayerComponent = ({
           onClick={onClick}
           strokeWidth={
             selectedPlayer?.coordinates === point.coordinates
-              ? 4 * zoom
-              : 2 * zoom
+              ? 4
+              : 2
           }
           stroke={
             selectedPlayer?.coordinates === point.coordinates
               ? '#F56565'
               : accentColor
           }
+          perfectDrawEnabled={false}
         />
       )}
       {point.entity?.type === 'npc' && (
@@ -318,24 +316,25 @@ const PlayerComponent = ({
             selectedPlayer?.coordinates === point.coordinates ? '#F56565' : ''
           }
           strokeWidth={
-            selectedPlayer?.coordinates === point.coordinates ? 4 * zoom : 0
+            selectedPlayer?.coordinates === point.coordinates ? 4 : 0
           }
+          perfectDrawEnabled={false}
         />
       )}
 
       <Text
         text={point.entity?.symbol || '@'}
-        fontSize={(CELL_SCALAR * zoom * point.width) / 1.8}
+        fontSize={(CELL_SCALAR * point.width) / 1.8}
         fontStyle="bold"
         fontFamily="monospace"
         fill={accentColor}
         x={x}
         y={
           y +
-          ((CELL_SCALAR * zoom * point.width) / 2 -
-            (CELL_SCALAR * zoom * point.height) / 4)
+          ((CELL_SCALAR * point.width) / 2 -
+            (CELL_SCALAR * point.height) / 4)
         }
-        width={point.width * CELL_SCALAR * zoom}
+        width={point.width * CELL_SCALAR}
         align="center"
         id={`${point.coordinates.x}:${point.coordinates.y}`}
         onClick={onClick}

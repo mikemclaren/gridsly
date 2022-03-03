@@ -5,7 +5,6 @@ import { Point, PointComponent } from './Point'
 export interface MapGridProps {
   width: number
   height: number
-  zoom: number
   layers: LayerType[]
   labelZeroX: number
   labelZeroY: number
@@ -14,7 +13,6 @@ export interface MapGridProps {
 const MapGrid = ({
   width,
   height,
-  zoom,
   layers,
   labelZeroX,
   labelZeroY
@@ -27,7 +25,6 @@ const MapGrid = ({
             <PointComponent
               point={point}
               key={`${layer.name}:${point.coordinates.x}:${point.coordinates.y}`}
-              zoom={zoom}
               labelZeroX={labelZeroX}
               labelZeroY={labelZeroY}
             />
