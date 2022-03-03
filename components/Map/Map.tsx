@@ -11,8 +11,7 @@ import {
 import { Layer, Stage } from 'react-konva'
 import { CELL_SCALAR } from '../../_vars'
 import MapControls from '../MapControls'
-import MapGrid from '../MapGrid'
-import { Coordinates, Entity, PartialEntity, Point } from '../Point'
+import { Coordinates, Entity, PartialEntity, Point, PointComponent } from '../Point'
 import FileSaver from 'file-saver'
 import {
   useRecoilBridgeAcrossReactRoots_UNSTABLE,
@@ -253,11 +252,11 @@ export default function Map() {
           }
         ]
 
-        return [...ls]
+        return ls
       }
 
       ls[Layers.MOUSE].points = []
-      return [...ls]
+      return ls
     })
   }, [rectangleStarted, rectangleEnd])
 
@@ -313,7 +312,7 @@ export default function Map() {
         return [...l]
       }
 
-      return [...l]
+      return l
     })
 
     return cell
@@ -520,12 +519,20 @@ export default function Map() {
         setRectangleStarted({ x: gridX, y: gridY })
         return
       } else {
+        if (gridX < labelZeroX) {
+          setLabelZeroX(gridX);
+        }
+
+        if (gridY < labelZeroY) {
+          setLabelZeroY(gridY);
+        }
+
         addRectangleSpaces()
         setRectangleStarted(null)
         setRectangleEnd(null)
       }
     },
-    [rectangleStarted, rectangleEnd]
+    [rectangleStarted, rectangleEnd, labelZeroX, labelZeroY]
   )
 
   const onGridMouseMove = useCallback(
@@ -760,13 +767,49 @@ export default function Map() {
           scaleY={zoomVal}
         >
           <RecoilBridge>
-            <MapGrid
-              width={width}
-              height={height}
-              layers={layers}
-              labelZeroX={labelZeroX}
-              labelZeroY={labelZeroY}
-            />
+            {layers[Layers.SPACES]?.points && <Layer key={layers[Layers.SPACES].name}>
+              {layers[Layers.SPACES].points.map((point: Point) => (
+                <PointComponent
+                  point={point}
+                  key={`${layers[Layers.SPACES].name}:${point.coordinates.x}:${point.coordinates.y}`}
+                  labelZeroX={labelZeroX}
+                  labelZeroY={labelZeroY}
+                />
+              ))}
+            </Layer>}
+
+            {layers[Layers.BARRIERS]?.points && <Layer key={layers[Layers.BARRIERS].name}>
+              {layers[Layers.BARRIERS].points.map((point: Point) => (
+                <PointComponent
+                  point={point}
+                  key={`${layers[Layers.BARRIERS].name}:${point.coordinates.x}:${point.coordinates.y}`}
+                  labelZeroX={labelZeroX}
+                  labelZeroY={labelZeroY}
+                />
+              ))}
+            </Layer>}
+
+            {layers[Layers.PLAYERS]?.points && <Layer key={layers[Layers.PLAYERS].name}>
+              {layers[Layers.PLAYERS].points.map((point: Point) => (
+                <PointComponent
+                  point={point}
+                  key={`${layers[Layers.PLAYERS].name}:${point.coordinates.x}:${point.coordinates.y}`}
+                  labelZeroX={labelZeroX}
+                  labelZeroY={labelZeroY}
+                />
+              ))}
+            </Layer>}
+
+            {layers[Layers.MOUSE]?.points && <Layer key={layers[Layers.MOUSE].name}>
+              {layers[Layers.MOUSE].points.map((point: Point) => (
+                <PointComponent
+                  point={point}
+                  key={`${layers[Layers.MOUSE].name}:${point.coordinates.x}:${point.coordinates.y}`}
+                  labelZeroX={labelZeroX}
+                  labelZeroY={labelZeroY}
+                />
+              ))}
+            </Layer>}
           </RecoilBridge>
         </Stage>
       </Box>
